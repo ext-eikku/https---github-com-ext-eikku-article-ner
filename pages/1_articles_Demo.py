@@ -19,6 +19,15 @@ import numpy as np
 import streamlit as st
 from streamlit.hello.utils import show_code
 
+import pandas as pd
+import torch
+from transformers import AutoModelForTokenClassification, AutoTokenizer
+
+from transformers import pipeline
+# create pipeline for NER
+ner = pipeline('ner', aggregation_strategy = 'simple', model="iguanodon-ai/bert-base-finnish-uncased-ner")
+
+
 
 def plotting_demo():
     progress_bar = st.sidebar.progress(0)
@@ -42,7 +51,7 @@ def plotting_demo():
     st.button("Re-run")
 
 
-st.set_page_config(page_title="Plotting Demo", page_icon="📈")
+st.set_page_config(page_title="Article Demo", page_icon=":clown:")
 st.markdown("# Plotting Demo")
 st.sidebar.header("Plotting Demo")
 st.write(
