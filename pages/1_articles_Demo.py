@@ -28,30 +28,52 @@ from transformers import pipeline
 ner = pipeline('ner', aggregation_strategy = 'simple', model="iguanodon-ai/bert-base-finnish-uncased-ner")
 
 
+### Real deal 
+#### Get an article
+import requests
+import json
 
-def plotting_demo():
-    progress_bar = st.sidebar.progress(0)
-    status_text = st.sidebar.empty()
-    last_rows = np.random.randn(1, 1)
-    chart = st.line_chart(last_rows)
+def article_demo():
 
-    for i in range(1, 101):
-        new_rows = last_rows[-1, :] + np.random.randn(5, 1).cumsum(axis=0)
-        status_text.text("%i%% Complete" % i)
-        chart.add_rows(new_rows)
-        progress_bar.progress(i)
-        last_rows = new_rows
-        time.sleep(0.05)
+    def get_article_data():
+        response_API = requests.get('https://articles.api.yle.fi/v2/articles.json?app_id=HIEKKALAATIKKO&app_key=HIEKKALAATIKKO&id=74-20054878')
+        jsondata = response_API.text
+        parse_json = json.loads(jsondata)
+        
+        data=[]
+        for q in parse_json['data'][0]['content']:
+            if q['type']=='text':
+                data.append(q['text'])
 
-    progress_bar.empty()
+        return data
 
-    # Streamlit widgets automatically run the script from top to bottom. Since
-    # this button is not connected to any other logic, it just causes a plain
-    # rerun.
-    st.button("Re-run")
+    def get_ner():
+        # using list comprehension
+        listToStr = ' '.join(map(str, data))
 
+        tulos = ner(listToStr)
+        tulospd =pd.DataFrame(tulos)
 
-st.set_page_config(page_title="Article Demo", page_icon=":clown:")
+        return tulospd.head()
+    
+
+    try:
+        #### get only text
+        data = get_article_data()
+        tulos = get_ner()
+        
+    except URLError as e:
+        st.error(
+            """
+            **This demo requires internet access.**
+            Connection error: %s
+        """
+            % e.reason
+        )       
+        
+    
+
+st.set_page_config(page_title="Article Demo", page_icon="📊")
 st.markdown("# Plotting Demo")
 st.sidebar.header("Plotting Demo")
 st.write(
@@ -60,6 +82,6 @@ Streamlit. We're generating a bunch of random numbers in a loop for around
 5 seconds. Enjoy!"""
 )
 
-plotting_demo()
+article_demo()
 
-show_code(plotting_demo)
+show_code(article_demo)
