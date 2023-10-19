@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import time
+from urllib.error import URLError
 
 import numpy as np
 
@@ -35,18 +36,26 @@ import json
 
 def article_demo():
 
-    def get_article_data():
-        response_API = requests.get('https://articles.api.yle.fi/v2/articles.json?app_id=HIEKKALAATIKKO&app_key=HIEKKALAATIKKO&id=74-20054878')
+    list_of_articles = ['74-20055939', '74-20054878','74-20055762','20-10005611','7-10042956']
+
+    def get_article_data(artikkeli):
+        response_API = requests.get('https://articles.api.yle.fi/v2/articles.json?app_id=HIEKKALAATIKKO&app_key=HIEKKALAATIKKO&id='+artikkeli)
         jsondata = response_API.text
         parse_json = json.loads(jsondata)
         
+        return parse_json
+    
+    def get_text():
         data=[]
         for q in parse_json['data'][0]['content']:
             if q['type']=='text':
                 data.append(q['text'])
-
         return data
-
+    
+    def get_headline():
+        headline = parse_json['data'][0]['headline']['full']
+        return headline
+    
     def get_ner():
         # using list comprehension
         listToStr = ' '.join(map(str, data))
@@ -58,9 +67,17 @@ def article_demo():
     
 
     try:
+        articles = st.selectbox(
+            "Choose articles", list_of_articles, 
+        )
+        if not articles:
+            st.error("Please select at least one article.")
         #### get only text
-        data = get_article_data()
+        parse_json = get_article_data(articles)
+        data = get_text()
         tulos = get_ner()
+        headeri = get_headline()
+        st.write("### Named entities of the article:", headeri, tulos.sort_index())
         
     except URLError as e:
         st.error(
@@ -74,12 +91,10 @@ def article_demo():
     
 
 st.set_page_config(page_title="Article Demo", page_icon="📊")
-st.markdown("# Plotting Demo")
-st.sidebar.header("Plotting Demo")
+st.markdown("# Artikkeli Demo")
+st.sidebar.header("Artikkeli Demo")
 st.write(
-    """This demo illustrates a combination of plotting and animation with
-Streamlit. We're generating a bunch of random numbers in a loop for around
-5 seconds. Enjoy!"""
+    """Tää demo esittelee kuinka helposti artikkeleista vois hakea NER asioita"""
 )
 
 article_demo()

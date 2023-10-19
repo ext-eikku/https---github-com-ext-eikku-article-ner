@@ -3,6 +3,5 @@ numpy
 pandas
 pydeck
 streamlit
-transformers
 torch
-torchvision
+transformers
